@@ -2,10 +2,10 @@ using System.Threading;
 using MarketDataAggregator;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace TestProject.Behavioral
+namespace TestProject.Compositions
 {
     [TestClass]
-    public class DefaultSetupTest
+    public class StartAndEndSourceStreamTest
     {
         [TestMethod]
         public void Run()
@@ -13,12 +13,10 @@ namespace TestProject.Behavioral
             // Arrange
 
             var stream1 = new MarketDataStream();
-            var stream2 = new MarketDataStream();
 
             var aggregator = new ThrottledMarketDataStream();
 
             stream1.AddWatcher(aggregator);
-            stream2.AddWatcher(aggregator);
 
             var client = new Client();
             aggregator.AddWatcher(client);
@@ -27,7 +25,10 @@ namespace TestProject.Behavioral
             // Act
             aggregator.Start();
             stream1.Start();
-            stream2.Start();
+
+            Thread.Sleep(3000);
+
+            stream1.End();
 
             Thread.Sleep(3000);
 

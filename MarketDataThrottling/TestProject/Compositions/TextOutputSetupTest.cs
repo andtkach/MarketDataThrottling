@@ -1,9 +1,8 @@
-using System.Security;
 using System.Threading;
 using MarketDataAggregator;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace TestProject.Behavioral
+namespace TestProject.Compositions
 {
     [TestClass]
     public class TextOutputSetupTest

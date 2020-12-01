@@ -23,6 +23,10 @@ namespace MarketDataAggregator
             stream2.Start();
 
             Console.ReadLine();
+
+            stream1.End();
+            stream2.End();
+            aggregator.End();
         }
     }
 }

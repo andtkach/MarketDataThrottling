@@ -1,22 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace MarketDataAggregator
+﻿namespace MarketDataAggregator
 {
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class MarketDataStream : IMarketDataStream
     {
         private readonly List<IMarketDataObserver> _watchers;
-        private readonly Random _randomizer;
         private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly IDataStreamStrategy _dataStreamStrategy;
         private CancellationToken _cancellationToken;
 
-        public MarketDataStream()
+        public MarketDataStream() : this(new RandomDataStreamStrategy())
         {
-            _watchers = new List<IMarketDataObserver>();
-            _randomizer = new Random();
-            _cancellationTokenSource = new CancellationTokenSource();
+        }
+
+        public MarketDataStream(IDataStreamStrategy dataStreamStrategy)
+        {
+            this._dataStreamStrategy = dataStreamStrategy;
+            this._watchers = new List<IMarketDataObserver>();
+            this._cancellationTokenSource = new CancellationTokenSource();
         }
 
         public void AddWatcher(IMarketDataObserver watcher)
@@ -39,31 +42,31 @@ namespace MarketDataAggregator
             _cancellationToken = _cancellationTokenSource.Token;
 
             Task.Run(() =>
+            {
+                var ct = _cancellationToken;
+
+                while (true)
                 {
-                    while (true)
+                    if (ct.IsCancellationRequested)
                     {
-                        if (_cancellationToken.IsCancellationRequested)
-                        {
-                            break;
-                        }
-
-                        Thread.Sleep(1);
-                        
-                        var update = new MarketDataUpdate();
-                        update.InstrumentId = "AAPL_" + _randomizer.Next(1, 100);
-                        update.Fields = new Dictionary<byte, long>();
-                 
-                        for (int i = 0; i < _randomizer.Next(1, 5); i++)
-                        {
-                            update.Fields[(byte)_randomizer.Next(1, 20)] = _randomizer.Next(1, 10000);
-                        }
-
-                        foreach (var watcher in _watchers)
-                        {
-                            watcher.OnUpdate(update);
-                        }
+                        break;
                     }
-                }, _cancellationToken);
+
+                    Thread.Sleep(1);
+
+                    var update = this._dataStreamStrategy.Next();
+
+                    if (update == null)
+                    {
+                        continue;
+                    }
+                    
+                    foreach (var watcher in _watchers)
+                    {
+                        watcher.OnUpdate(update);
+                    }
+                }
+            }, _cancellationToken);
         }
     }
 }
