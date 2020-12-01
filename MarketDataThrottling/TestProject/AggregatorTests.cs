@@ -11,24 +11,41 @@
         [TestMethod]
         public void CheckToString_ValidOutput()
         {
-            //Arrange
-            var input = new List<MarketDataUpdate>();
-            input.Add(new MarketDataUpdate { InstrumentId = "AAPL_1", Fields = new Dictionary<byte, long> { { 1, 10 }, { 4, 200 }, { 12, 187 } } });
-            input.Add(new MarketDataUpdate { InstrumentId = "AAPL_2", Fields = new Dictionary<byte, long> { { 1, 12 }, { 4, 210 } } });
-            input.Add(new MarketDataUpdate { InstrumentId = "AAPL_1", Fields = new Dictionary<byte, long> { { 12, 189 } } });
-            input.Add(new MarketDataUpdate { InstrumentId = "AAPL_1", Fields = new Dictionary<byte, long> { { 2, 24 } } });
-            input.Add(new MarketDataUpdate { InstrumentId = "AAPL_2", Fields = new Dictionary<byte, long> { { 5, 120 } } });
+            //// Arrange
+            var input = new List<MarketDataUpdate>
+            {
+                new MarketDataUpdate
+                {
+                    InstrumentId = "AAPL_1", Fields = new Dictionary<byte, long> { { 1, 10 }, { 4, 200 }, { 12, 187 } }
+                },
+                new MarketDataUpdate
+                {
+                    InstrumentId = "AAPL_2", Fields = new Dictionary<byte, long> { { 1, 12 }, { 4, 210 } }
+                },
+                new MarketDataUpdate
+                {
+                    InstrumentId = "AAPL_1", Fields = new Dictionary<byte, long> { { 12, 189 } }
+                },
+                new MarketDataUpdate
+                {
+                    InstrumentId = "AAPL_1", Fields = new Dictionary<byte, long> { { 2, 24 } }
+                },
+                new MarketDataUpdate
+                {
+                    InstrumentId = "AAPL_2", Fields = new Dictionary<byte, long> { { 5, 120 } }
+                }
+            };
+
+            var slice = new DefaultSliceAggregator();
             
-            var slice = new Slice();
-            
-            //Act
+            //// Act
 
             foreach (var item in input)
             {
                 slice.AddItem(item);   
             }
 
-            //Assert
+            //// Assert
             var result = slice.Data;
 
             Assert.IsNotNull(result);

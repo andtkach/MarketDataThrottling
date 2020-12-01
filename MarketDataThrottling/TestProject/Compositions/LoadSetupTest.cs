@@ -1,18 +1,17 @@
-using System.Collections.Generic;
-using System.Threading;
-using MarketDataAggregator;
-using Microsoft.VisualBasic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace TestProject.Compositions
 {
+    using System.Collections.Generic;
+    using System.Threading;
+    using MarketDataAggregator;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+
     [TestClass]
     public class LoadSetupTest
     {
         [TestMethod]
         public void Run()
         {
-            // Arrange
+            //// Arrange
 
             var aggregator = new ThrottledMarketDataStream();
             var streams = new List<MarketDataStream>();
@@ -26,9 +25,8 @@ namespace TestProject.Compositions
             }
             
             aggregator.AddWatcher(client);
-
             
-            // Act
+            //// Act
             aggregator.Start();
 
             foreach (var stream in streams)
@@ -44,7 +42,8 @@ namespace TestProject.Compositions
             }
 
             aggregator.End();
-            // Assert
+
+            //// Assert
         }
     }
 }

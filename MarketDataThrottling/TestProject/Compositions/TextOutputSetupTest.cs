@@ -1,16 +1,16 @@
-using System.Threading;
-using MarketDataAggregator;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace TestProject.Compositions
 {
+    using System.Threading;
+    using MarketDataAggregator;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+
     [TestClass]
     public class TextOutputSetupTest
     {
         [TestMethod]
         public void Run()
         {
-            // Arrange 
+            //// Arrange 
 
             var stream1 = new MarketDataStream();
             var stream2 = new MarketDataStream();
@@ -25,7 +25,6 @@ namespace TestProject.Compositions
 
             aggregator.AddWatcher(client);
             
-
             // Act
             aggregator.Start();
 
@@ -33,7 +32,6 @@ namespace TestProject.Compositions
             stream2.Start();
 
             Thread.Sleep(3000);
-
 
             // Assert
             var result = logClient.Print();

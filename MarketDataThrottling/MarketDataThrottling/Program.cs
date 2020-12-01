@@ -1,10 +1,10 @@
-﻿using System;
-
-namespace MarketDataAggregator
+﻿namespace MarketDataAggregator
 {
-    class Program
+    using System;
+
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             var stream1 = new MarketDataStream();
             var stream2 = new MarketDataStream();

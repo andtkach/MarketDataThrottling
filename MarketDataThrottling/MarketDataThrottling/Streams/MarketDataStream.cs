@@ -6,10 +6,10 @@
 
     public class MarketDataStream : IMarketDataStream
     {
-        private readonly List<IMarketDataObserver> _watchers;
-        private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly IDataStreamStrategy _dataStreamStrategy;
-        private CancellationToken _cancellationToken;
+        private readonly List<IMarketDataObserver> watchers;
+        private readonly CancellationTokenSource cancellationTokenSource;
+        private readonly IDataStreamStrategy dataStreamStrategy;
+        private CancellationToken cancellationToken;
 
         public MarketDataStream() : this(new RandomDataStreamStrategy())
         {
@@ -17,33 +17,34 @@
 
         public MarketDataStream(IDataStreamStrategy dataStreamStrategy)
         {
-            this._dataStreamStrategy = dataStreamStrategy;
-            this._watchers = new List<IMarketDataObserver>();
-            this._cancellationTokenSource = new CancellationTokenSource();
+            this.dataStreamStrategy = dataStreamStrategy;
+            this.watchers = new List<IMarketDataObserver>();
+            this.cancellationTokenSource = new CancellationTokenSource();
         }
 
         public void AddWatcher(IMarketDataObserver watcher)
         {
-            _watchers.Add(watcher);
+            this.watchers.Add(watcher);
         }
 
         public void RemoveWatcher(IMarketDataObserver watcher)
         {
-            _watchers.Remove(watcher);
+            this.watchers.Remove(watcher);
         }
 
         public void End()
         {
-            _cancellationTokenSource.Cancel();
+            this.cancellationTokenSource.Cancel();
         }
 
         public void Start()
         {
-            _cancellationToken = _cancellationTokenSource.Token;
+            this.cancellationToken = this.cancellationTokenSource.Token;
 
-            Task.Run(() =>
+            Task.Run(
+                () =>
             {
-                var ct = _cancellationToken;
+                var ct = this.cancellationToken;
 
                 while (true)
                 {
@@ -54,19 +55,20 @@
 
                     Thread.Sleep(1);
 
-                    var update = this._dataStreamStrategy.Next();
+                    var update = this.dataStreamStrategy.Next();
 
                     if (update == null)
                     {
                         continue;
                     }
                     
-                    foreach (var watcher in _watchers)
+                    foreach (var watcher in watchers)
                     {
                         watcher.OnUpdate(update);
                     }
                 }
-            }, _cancellationToken);
+            }, 
+                this.cancellationToken);
         }
     }
 }

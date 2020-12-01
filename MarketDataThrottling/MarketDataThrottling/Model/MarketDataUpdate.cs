@@ -1,14 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Text;
-
-namespace MarketDataAggregator
+﻿namespace MarketDataAggregator
 {
+    using System.Collections.Generic;
+    using System.Text;
+
     public sealed class MarketDataUpdate
     {
-        public string InstrumentId { get; set; }
-
-        public Dictionary<byte, long> Fields { get; set; }
-
         public MarketDataUpdate()
         {
         }
@@ -17,8 +13,11 @@ namespace MarketDataAggregator
         {
             this.InstrumentId = instrumentId;
             this.Fields = new Dictionary<byte, long>(fields);
-
         }
+
+        public string InstrumentId { get; set; }
+
+        public Dictionary<byte, long> Fields { get; set; }
 
         public override string ToString()
         {
@@ -28,7 +27,7 @@ namespace MarketDataAggregator
 
             builder.Append($"Instrument: {InstrumentId}, FieldsNo: {Fields.Count}, Fields: [");
             
-            foreach (var field in Fields)
+            foreach (var field in this.Fields)
             {
                 needCleanEmptyComma = true;
                 builder.Append($"{field.Key}: {field.Value}, ");

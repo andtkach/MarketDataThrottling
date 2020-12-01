@@ -1,28 +1,26 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace MarketDataAggregator
+﻿namespace MarketDataAggregator
 {
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public class ThrottledMarketDataStream : IMarketDataObserver, IThrottledMarketDataStream
     {
-        private readonly List<IAggregatedMarketDataObserver> _watchers = new List<IAggregatedMarketDataObserver>();
+        private readonly List<IAggregatedMarketDataObserver> watchers = new List<IAggregatedMarketDataObserver>();
         
-        private readonly ConcurrentQueue<MarketDataUpdate> _buffer = new ConcurrentQueue<MarketDataUpdate>();
+        private readonly ConcurrentQueue<MarketDataUpdate> buffer = new ConcurrentQueue<MarketDataUpdate>();
 
-        private readonly int _sleepPeriod;
+        private readonly int sleepPeriod;
 
-        private readonly CancellationTokenSource _cancellationTokenSource;
+        private readonly CancellationTokenSource cancellationTokenSource;
 
-        private CancellationToken _cancellationToken;
+        private CancellationToken cancellationToken;
 
         public ThrottledMarketDataStream(int sleep)
         {
-            this._sleepPeriod = sleep;
-            this._cancellationTokenSource = new CancellationTokenSource();
+            this.sleepPeriod = sleep;
+            this.cancellationTokenSource = new CancellationTokenSource();
         }
 
         public ThrottledMarketDataStream() : this(200)
@@ -31,21 +29,22 @@ namespace MarketDataAggregator
 
         public void AddWatcher(IAggregatedMarketDataObserver watcher)
         {
-            _watchers.Add(watcher);
+            this.watchers.Add(watcher);
         }
 
         public void RemoveWatcher(IAggregatedMarketDataObserver watcher)
         {
-            _watchers.Remove(watcher);
+            this.watchers.Remove(watcher);
         }
 
         public void Start()
         {
-            _cancellationToken = _cancellationTokenSource.Token;
+            this.cancellationToken = this.cancellationTokenSource.Token;
 
-            Task.Run(() =>
+            Task.Run(
+                () =>
             {
-                var ct = _cancellationToken;
+                var ct = this.cancellationToken;
 
                 while (true)
                 {
@@ -54,101 +53,45 @@ namespace MarketDataAggregator
                         break;
                     }
 
-                    Thread.Sleep(this._sleepPeriod);
+                    Thread.Sleep(this.sleepPeriod);
 
-                    var slice = new Slice();
+                    var slice = new DefaultSliceAggregator();
                     
-                    while (_buffer.TryDequeue(out var item))
+                    while (this.buffer.TryDequeue(out var item))
                     {
                         slice.AddItem(item);
                     }
 
-                    this.PublishSlice(slice);
-                    
+                    this.PublishSlice(slice.Data);
                 }
-            }, _cancellationToken);
-        }
-
-        private void PublishSlice(Slice slice)
-        {
-            if (!slice.Any())
-            {
-                return;
-            }
-            
-            foreach (var (key, value) in slice.Data)
-            {
-                var itemToSend = new MarketDataUpdate(key, value);
-                
-                foreach (var watcher in _watchers)
-                {
-                    watcher.OnUpdate(new[] { itemToSend });
-                }
-            }
+            }, 
+                this.cancellationToken);
         }
 
         public void End()
         {
-            _cancellationTokenSource.Cancel();
+            this.cancellationTokenSource.Cancel();
         }
 
         public void OnUpdate(MarketDataUpdate marketDataUpdate)
         {
-            this._buffer.Enqueue(marketDataUpdate);
-        }
-    }
-
-    public class Slice
-    {
-        private readonly Dictionary<string, Dictionary<byte, long>> _data;
-
-        public Slice()
-        {
-            this._data = new Dictionary<string, Dictionary<byte, long>>();
+            this.buffer.Enqueue(marketDataUpdate);
         }
 
-        public bool Any()
+        private void PublishSlice(IDictionary<string, Dictionary<byte, long>> data)
         {
-            return this._data.Any();
-        }
-
-        public IDictionary<string, Dictionary<byte, long>> Data => this._data;
-
-        public void AddItem(MarketDataUpdate item)
-        {
-            if (this.HasInstrument(item.InstrumentId))
+            if (data == null)
             {
-                this.Update(item);
+                return;
             }
-            else
+
+            foreach (var (key, value) in data)
             {
-                this.AddNew(item);
-            }
-        }
+                var itemToSend = new MarketDataUpdate(key, value);
 
-        private void AddNew(MarketDataUpdate item)
-        {
-            this._data.Add(item.InstrumentId, item.Fields);
-        }
-
-        private bool HasInstrument(string instrumentId)
-        {
-            return this._data.ContainsKey(instrumentId);
-        }
-
-        private void Update(MarketDataUpdate item)
-        {
-            var existingItem = this._data[item.InstrumentId];
-
-            foreach (var field in item.Fields)
-            {
-                if (existingItem.ContainsKey(field.Key))
+                foreach (var watcher in this.watchers)
                 {
-                    existingItem[field.Key] = field.Value;
-                }
-                else
-                {
-                    existingItem.Add(field.Key, field.Value);
+                    watcher.OnUpdate(new[] { itemToSend });
                 }
             }
         }

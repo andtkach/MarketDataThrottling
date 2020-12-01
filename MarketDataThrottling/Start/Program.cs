@@ -1,17 +1,11 @@
-namespace TestProject.Compositions
-{
-    using System.Threading;
-    using MarketDataAggregator;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
-    
-    [TestClass]
-    public class DefaultSetupTest
-    {
-        [TestMethod]
-        public void Run()
-        {
-            //// Arrange
+﻿using System;
 
+namespace MarketDataAggregator
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
             var stream1 = new MarketDataStream();
             var stream2 = new MarketDataStream();
 
@@ -21,16 +15,13 @@ namespace TestProject.Compositions
             stream2.AddWatcher(aggregator);
 
             var client = new Client();
+
             aggregator.AddWatcher(client);
 
-            // Act
-            aggregator.Start();
             stream1.Start();
             stream2.Start();
 
-            Thread.Sleep(3000);
-            
-            // Assert
+            Console.ReadLine();
         }
     }
 }

@@ -1,19 +1,19 @@
-﻿using System.Text;
-
-namespace MarketDataAggregator
+﻿namespace MarketDataAggregator
 {
+    using System.Text;
+
     public class LogClientStrategy : IClientStrategy
     {
-        private readonly StringBuilder _log = new StringBuilder();
+        private readonly StringBuilder log = new StringBuilder();
 
         public void Execute(MarketDataUpdate marketDataUpdate)
         {
-            this._log.AppendLine($"{marketDataUpdate}");
+            this.log.AppendLine($"{marketDataUpdate}");
         }
 
         public string Print()
         {
-            return this._log.ToString();
+            return this.log.ToString();
         }
     }
 }
